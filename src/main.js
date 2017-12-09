@@ -15,6 +15,7 @@ Vue.use(VueAxios, Axios);
 Vue.config.productionTip = false;
 
 Axios.defaults.baseURL = 'http://localhost:8080/WS-REST-02/webresources/';
+Axios.defaults.headers.post['Content-Type'] = 'application/xml';
 
 /* eslint-disable no-new */
 new Vue({

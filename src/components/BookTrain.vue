@@ -1,22 +1,26 @@
 <template>
-  <div>
-    <v-data-table
-      v-bind:headers="headers"
-      :items="bookTrains"
-      hide-actions
-      class="elevation-1"
-    >
-      <template slot="items" slot-scope="props">
-        <td>{{ props.item.bookNumber }}</td>
-        <td>
-          <router-link :to="{name: 'TrainDetail', params: {id: props.item.currentTrain}}">
-            {{ props.item.currentTrain }}
-          </router-link>
-        </td>
-        <td>{{ props.item.numberPlaces }}</td>
-      </template>
-    </v-data-table>
-  </div>
+  <v-layout row wrap>
+    <v-flex xs12>
+      <div>
+        <v-data-table
+          v-bind:headers="headers"
+          :items="bookTrains"
+          hide-actions
+          class="elevation-1"
+        >
+          <template slot="items" slot-scope="props">
+            <td>{{ props.item.bookNumber }}</td>
+            <td>
+              <router-link :to="{name: 'TrainDetail', params: {id: props.item.currentTrain}}">
+                {{ props.item.currentTrain }}
+              </router-link>
+            </td>
+            <td>{{ props.item.numberPlaces }}</td>
+          </template>
+        </v-data-table>
+      </div>
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
@@ -49,6 +53,7 @@
           const bookTrains = xmlDoc.getElementsByTagName('bookTrains')[0];
           const bookTrainsList = bookTrains.getElementsByTagName('booktrain');
           let i = 0;
+          this.bookTrains = [];
           while (i < bookTrainsList.length) {
             this.bookTrains.push(this.parseBookTrain(bookTrainsList[i]));
             i += 1;
@@ -69,21 +74,5 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  h1, h2 {
-    font-weight: normal;
-  }
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-
-  a {
-    color: #42b983;
-  }
 </style>

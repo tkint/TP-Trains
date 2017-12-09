@@ -1,62 +1,94 @@
 <template>
-  <v-layout v-if="train" row wrap>
+  <v-layout row wrap>
     <v-flex xs12>
-      <v-layout row wrap>
+      <v-layout v-if="train" row wrap>
         <v-flex xs12>
-          Train {{ train.numTrain }}
+          <v-layout row wrap>
+            <v-flex xs12>
+              Train {{ train.numTrain }}
+            </v-flex>
+            <v-flex xs12>
+              <book-train :numTrain="train.numTrain" ref="books"></book-train>
+            </v-flex>
+          </v-layout>
         </v-flex>
         <v-flex xs12>
-          <book-train :numTrain="train.numTrain"></book-train>
+          <v-layout row wrap>
+            <v-flex xs12>
+              <v-text-field
+                name="places"
+                label="Places"
+                v-model="numberPlaces"
+                type="number"
+              >
+              </v-text-field>
+            </v-flex>
+            <v-flex xs12>
+              <v-btn
+                color="info"
+                @click.stop="bookTrain"
+              >Réserver
+              </v-btn>
+            </v-flex>
+          </v-layout>
         </v-flex>
       </v-layout>
-    </v-flex>
-    <v-flex xs12>
-      <v-layout row wrap>
-        <v-flex xs12>
-          <v-text-field
-            name="train"
-            label="Train"
-            :value="train.numTrain"
-            readonly
-          >
-          </v-text-field>
+      <div v-else>
+        <v-data-table
+          v-bind:headers="headers"
+          :items="trains"
+          hide-actions
+          class="elevation-1"
+        >
+          <template slot="items" slot-scope="props">
+            <router-link :to="{name: 'TrainDetail', params: {id: props.item.numTrain}}">
+              {{ props.item.numTrain }}
+            </router-link>
+            <td>{{ props.item.villeDepart }}</td>
+            <td>{{ props.item.villeArrivee }}</td>
+            <td>{{ props.item.heureDepart }}</td>
+          </template>
+        </v-data-table>
+        <v-flex xs12 v-if="$route.name === 'Train'">
+          <v-layout row wrap>
+            <v-flex xs12>
+              <v-text-field
+                name="numTrain"
+                label="Numéro"
+                v-model="newTrain.numTrain"
+              >
+              </v-text-field>
+              <v-text-field
+                name="depart"
+                label="Départ"
+                v-model="newTrain.villeDepart"
+              >
+              </v-text-field>
+              <v-text-field
+                name="arrivee"
+                label="Arrivée"
+                v-model="newTrain.villeArrivee"
+              >
+              </v-text-field>
+              <v-text-field
+                name="heure"
+                label="Heure"
+                v-model="newTrain.heureDepart"
+              >
+              </v-text-field>
+            </v-flex>
+            <v-flex xs12>
+              <v-btn
+                color="info"
+                @click.stop="createTrain"
+              >Créer train
+              </v-btn>
+            </v-flex>
+          </v-layout>
         </v-flex>
-        <v-flex xs12>
-          <v-text-field
-            name="places"
-            label="Places"
-            v-model="newBookTrain.numberPlaces"
-            type="number"
-          >
-          </v-text-field>
-        </v-flex>
-        <v-flex xs12>
-          <v-btn
-            color="info"
-            @click.stop="bookTrain"
-          >Réserver
-          </v-btn>
-        </v-flex>
-      </v-layout>
+      </div>
     </v-flex>
   </v-layout>
-  <div v-else>
-    <v-data-table
-      v-bind:headers="headers"
-      :items="trains"
-      hide-actions
-      class="elevation-1"
-    >
-      <template slot="items" slot-scope="props">
-        <router-link :to="{name: 'TrainDetail', params: {id: props.item.numTrain}}">
-          {{ props.item.numTrain }}
-        </router-link>
-        <td>{{ props.item.villeDepart }}</td>
-        <td>{{ props.item.villeArrivee }}</td>
-        <td>{{ props.item.heureDepart }}</td>
-      </template>
-    </v-data-table>
-  </div>
 </template>
 
 <script>
@@ -75,11 +107,13 @@
         ],
         train: null,
         trains: [],
-        newBookTrain: {
-          bookNumber: null,
-          currentTrain: null,
-          numberPlaces: null,
+        newTrain: {
+          numTrain: null,
+          villeDepart: null,
+          villeArrivee: null,
+          heureDepart: null,
         },
+        numberPlaces: null,
       };
     },
     created() {
@@ -107,6 +141,7 @@
           const trains = xmlDoc.getElementsByTagName('trains')[0];
           const trainsList = trains.getElementsByTagName('train');
           let i = 0;
+          this.trains = [];
           while (i < trainsList.length) {
             this.trains.push(this.parseTrain(trainsList[i]));
             i += 1;
@@ -125,10 +160,28 @@
       bookTrain() {
         const bookTrain = '<newbooktrain>' +
           `<numTrain>${this.train.numTrain}</numTrain>` +
-          `<numberPlaces>${this.newBookTrain.numberPlaces}</numberPlaces>` +
+          `<numberPlaces>${this.numberPlaces}</numberPlaces>` +
           '</newbooktrain>';
-        this.axios.post('trains/booktrains', bookTrain).then((response) => {
-          console.log(response.data);
+        this.axios.post('trains/booktrains', bookTrain).then(() => {
+          this.$refs.books.getBookTrains();
+          this.numberPlaces = null;
+        });
+      },
+      createTrain() {
+        const train = '<train>' +
+          `<numTrain>${this.newTrain.numTrain}</numTrain>` +
+          `<villeDepart>${this.newTrain.villeDepart}</villeDepart>` +
+          `<villeArrivee>${this.newTrain.villeArrivee}</villeArrivee>` +
+          `<heureDepart>${this.newTrain.heureDepart}</heureDepart>` +
+          '</train>';
+        this.axios.post('trains', train).then(() => {
+          this.getTrains();
+          this.newTrain = {
+            numTrain: null,
+            villeDepart: null,
+            villeArrivee: null,
+            heureDepart: null,
+          };
         });
       },
     },
@@ -137,21 +190,5 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  h1, h2 {
-    font-weight: normal;
-  }
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-
-  a {
-    color: #42b983;
-  }
 </style>

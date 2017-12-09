@@ -1,12 +1,23 @@
 <template>
-  <v-app id="inspire">
+  <v-app>
     <v-toolbar color="indigo" dark fixed app>
+      <v-btn flat icon :to="{ name: 'Home' }" exact>
+        <v-icon>home</v-icon>
+      </v-btn>
+      <v-btn flat icon :to="{ name: 'Train' }" exact>
+        <v-icon>fa-train</v-icon>
+      </v-btn>
+      <v-btn flat icon :to="{ name: 'BookTrain' }" exact>
+        <v-icon>fa-book</v-icon>
+      </v-btn>
+      <v-spacer></v-spacer>
       <v-toolbar-title>TP Trains</v-toolbar-title>
+      <v-spacer></v-spacer>
     </v-toolbar>
     <v-content>
       <v-container fluid fill-height>
         <v-layout>
-          <router-view></router-view>
+          <router-view :key="$route.name"></router-view>
         </v-layout>
       </v-container>
     </v-content>
@@ -25,12 +36,5 @@
 </script>
 
 <style>
-  #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-    margin-top: 60px;
-  }
+
 </style>
