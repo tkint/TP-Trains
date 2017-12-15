@@ -34,6 +34,37 @@
         </v-flex>
       </v-layout>
       <div v-else>
+        <v-flex xs12 v-if="$route.name === 'Train'">
+          <v-layout row wrap>
+            <v-flex xs12>
+              <v-text-field
+                name="Value"
+                label="Value"
+                v-model="searchValue"
+              >
+              </v-text-field>
+            </v-flex>
+            <v-flex xs12>
+              <v-radio-group v-model="searchCriteria" :mandatory="false">
+                <v-radio label="Depart" value="departure"></v-radio>
+                <v-radio label="Arrivee" value="arrival"></v-radio>
+                <v-radio label="Heure d'arrivée" value="arrivalHour"></v-radio>
+              </v-radio-group>
+            </v-flex>
+            <v-flex xs12>
+              <v-btn
+                color="info"
+                @click.stop="searchTrain"
+              >Chercher
+              </v-btn>
+              <v-btn
+                color="warning"
+                @click.stop="getTrains"
+              >Réinitialiser
+              </v-btn>
+            </v-flex>
+          </v-layout>
+        </v-flex>
         <v-data-table
           v-bind:headers="headers"
           :items="trains"
@@ -114,6 +145,8 @@
           heureDepart: null,
         },
         numberPlaces: null,
+        searchValue: null,
+        searchCriteria: null,
       };
     },
     created() {
@@ -156,6 +189,59 @@
           heureDepart: train.getElementsByTagName('heureDepart')[0].innerHTML,
         };
         return t;
+      },
+      searchTrain() {
+        if (this.searchCriteria) {
+          this.searchTrainByCriteria();
+        } else {
+          this.searchTrainByValue();
+        }
+      },
+      searchTrainByCriteria() {
+        if (this.searchCriteria === 'departure') {
+          this.searchTrainByValues(this.searchValue, '', '');
+        } else if (this.searchCriteria === 'arrival') {
+          this.searchTrainByValues('', this.searchValue, '');
+        } else if (this.searchCriteria === 'arrivalHour') {
+          this.searchTrainByValues('', '', this.searchValue);
+        }
+      },
+      searchTrainByValue() {
+        this.searchTrainByValues(this.searchValue, this.searchValue, this.searchValue);
+      },
+      searchTrainByValues(departure, arrival, arrivalHour) {
+        const param = [];
+        if (departure) {
+          param.push(`departure=${departure}`);
+        }
+        if (arrival) {
+          param.push(`arrival=${arrival}`);
+        }
+        if (arrivalHour) {
+          param.push(`arrivalHour=${arrivalHour}`);
+        }
+        let req = 'trains/search?';
+        let i = 0;
+        while (param[i]) {
+          if (i > 0) {
+            req += '&';
+          }
+          req += param[i];
+          i += 1;
+        }
+        this.axios.get(req).then((response) => {
+          const text = response.data;
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(text, 'text/xml');
+          const trains = xmlDoc.getElementsByTagName('trains')[0];
+          const trainsList = trains.getElementsByTagName('train');
+          i = 0;
+          this.trains = [];
+          while (i < trainsList.length) {
+            this.trains.push(this.parseTrain(trainsList[i]));
+            i += 1;
+          }
+        });
       },
       bookTrain() {
         const bookTrain = '<newbooktrain>' +
